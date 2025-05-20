@@ -22,7 +22,7 @@ NL-Search replaces the default WordPress search with a powerful AI-driven semant
 
 1. Clone or download this repository into your WordPress `wp-content/plugins/` directory:
    ```sh
-   git clone https://github.com/your-org/nl-search.git
+   git clone https://github.com/superteams-ai/nl-search.git
    ```
 2. Activate the plugin from the WordPress admin (`Plugins > Installed Plugins`).
 3. Go to `Settings > NL Search` to configure:
