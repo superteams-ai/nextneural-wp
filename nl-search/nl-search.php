@@ -27,6 +27,9 @@ add_action('admin_init', function () {
     register_setting('nl_search_settings', 'nl_search_qdrant_url');
     register_setting('nl_search_settings', 'nl_search_qdrant_api_key');
     register_setting('nl_search_settings', 'nl_search_use_keyword_fallback');
+    register_setting('nl_search_settings', 'nl_search_index_posts');
+    register_setting('nl_search_settings', 'nl_search_index_pages');
+    register_setting('nl_search_settings', 'nl_search_include_excerpt');
 });
 
 
@@ -158,8 +161,12 @@ add_action('wp_ajax_nl_search_reindex_posts', function () {
     $headers = ['Content-Type' => 'application/json'];
     if (!empty($qdrant_key)) $headers['api-key'] = $qdrant_key;
 
-    // 1. Get all WP post IDs
-    $wp_post_ids = array_map('intval', get_posts(['numberposts' => -1, 'post_type' => 'post', 'fields' => 'ids']));
+    // 1. Get all WP post IDs (for selected types)
+    $post_types = [];
+    if (get_option('nl_search_index_posts', 'on')) $post_types[] = 'post';
+    if (get_option('nl_search_index_pages')) $post_types[] = 'page';
+    if (empty($post_types)) $post_types = ['post']; // fallback
+    $wp_post_ids = array_map('intval', get_posts(['numberposts' => -1, 'post_type' => $post_types, 'fields' => 'ids']));
 
     // 2. Get all Qdrant point IDs
     $qdrant_point_ids = nl_search_get_qdrant_point_ids($qdrant_url, $collection, $headers);
@@ -173,8 +180,12 @@ add_action('wp_ajax_nl_search_reindex_posts', function () {
 
     // 4. Proceed with batch upsert for current posts
     $points_array = [];
-    foreach (get_posts(['numberposts' => -1, 'post_type' => 'post']) as $post) {
+    $include_excerpt = get_option('nl_search_include_excerpt');
+    foreach (get_posts(['numberposts' => -1, 'post_type' => $post_types]) as $post) {
         $text = $post->post_title . "\n\n" . wp_strip_all_tags($post->post_content);
+        if ($include_excerpt && !empty($post->post_excerpt)) {
+            $text .= "\n\n" . wp_strip_all_tags($post->post_excerpt);
+        }
         $embedding_response = wp_remote_post('https://api.openai.com/v1/embeddings', [
             'headers' => [
                 'Authorization' => 'Bearer ' . $openai_key,
@@ -197,14 +208,14 @@ add_action('wp_ajax_nl_search_reindex_posts', function () {
             'payload' => ['title' => $post->post_title]
         ];
     }
-    error_log('Qdrant batch points array: ' . json_encode($points_array));
+    
     $qdrant_response = wp_remote_request("$qdrant_url/collections/$collection/points", [
         'method'  => 'PUT',
         'headers' => $headers,
         'body'    => json_encode(['points' => $points_array])
     ]);
     if (!is_wp_error($qdrant_response)) {
-        wp_send_json_success("✅ Reindexed " . count($points_array) . " posts. Deleted: " . count($ids_to_delete));
+        wp_send_json_success("✅ Reindexed " . count($points_array) . " posts/pages. Deleted: " . count($ids_to_delete));
     } else {
         error_log('Qdrant API error (batch): ' . wp_remote_retrieve_body($qdrant_response));
         wp_send_json_error('❌ Failed to upsert points in Qdrant. See debug.log for details.');
@@ -221,6 +232,9 @@ add_action('wp_ajax_nl_search_get_post_ids', function () {
 function nl_search_settings_page() {
     $use_fallback = get_option('nl_search_use_keyword_fallback') ? 'checked' : '';
     $collection_name = nl_search_get_collection_name();
+    $index_posts = get_option('nl_search_index_posts', 'on') ? 'checked' : '';
+    $index_pages = get_option('nl_search_index_pages') ? 'checked' : '';
+    $include_excerpt = get_option('nl_search_include_excerpt') ? 'checked' : '';
     // Enqueue jQuery if not already
     wp_enqueue_script('jquery');
     ?>
@@ -330,6 +344,14 @@ function nl_search_settings_page() {
                             </table>
                         </fieldset>
                     </td></tr>
+                    <tr><td colspan="2">
+                        <fieldset class="nl-search-fieldset">
+                            <legend>Indexing Options</legend>
+                            <label><input type="checkbox" name="nl_search_index_posts" <?php echo $index_posts; ?> /> Index Posts</label><br>
+                            <label><input type="checkbox" name="nl_search_index_pages" <?php echo $index_pages; ?> /> Index Pages</label><br>
+                            <label><input type="checkbox" name="nl_search_include_excerpt" <?php echo $include_excerpt; ?> /> Include Excerpt/Description</label>
+                        </fieldset>
+                    </td></tr>
                     <tr>
                         <th><label for="nl_search_use_keyword_fallback">Fallback to keyword search?</label></th>
                         <td>
@@ -378,6 +400,8 @@ function nl_search_settings_page() {
                     document.getElementById('nl-search-result-qdrant').innerText = '';
                     document.getElementById('nl-search-loading-qdrant').style.display = 'inline';
                     document.getElementById('nl-search-loading-openai').style.display = 'none';
+                } else {
+                    document.getElementById('nl-search-message').innerText = '';
                 }
                 document.getElementById('nl-search-message').innerText = '';
                 const data = {
