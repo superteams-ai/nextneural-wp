@@ -3,7 +3,7 @@ Contributors: superteamsai
 Tags: search, ai, openai, qdrant, semantic, vector, llm, natural language
 Requires at least: 5.0
 Tested up to: 6.5
-Stable tag: 1.0
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,9 +37,9 @@ Yes, it overrides the default search with semantic search. If semantic search fa
 Currently, only OpenAI and Qdrant are supported. Support for more LLMs and vector DBs is coming soon.
 
 == Changelog ==
-= 1.0 =
+= 1.0.0 =
 * Initial release: Semantic search with OpenAI and Qdrant, admin UI, batch reindex, and auto-sync.
 
 == Upgrade Notice ==
-= 1.0 =
+= 1.0.0 =
 First release. Please reindex your posts after upgrading. 
