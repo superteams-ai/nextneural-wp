@@ -7,6 +7,9 @@ This repository includes two plugins:
 - **NL Chatbot**: Floating AI-powered natural language chatbot for WordPress, using OpenAI and vector FAQ search (Qdrant).
 - **NL-Search**: AI-powered semantic search for WordPress posts and pages.
 
+<img width="1464" alt="Screenshot 2025-05-21 at 12 16 19 PM" src="https://github.com/user-attachments/assets/a07593dd-253f-4dcf-be22-f7ec72f3902d" />
+
+
 ## Why did we build this?
 
 Though there are many plugins for chatbots and search, we found that they either oversimplify or overcomplicate the process. We wanted to offer WordPress users lightweight options that just work. 
