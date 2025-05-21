@@ -28,6 +28,12 @@ add_action('admin_init', function() {
     register_setting('nlcb_settings', 'nlcb_openai_api_key');
     register_setting('nlcb_settings', 'nlcb_vector_api_key');
     register_setting('nlcb_settings', 'nlcb_vector_endpoint');
+    // Appearance settings - must be registered for saving!
+    register_setting('nlcb_settings', 'nlcb_appearance_title');
+    register_setting('nlcb_settings', 'nlcb_appearance_bubble_icon');
+    register_setting('nlcb_settings', 'nlcb_appearance_titlebar_color');
+    register_setting('nlcb_settings', 'nlcb_appearance_bot_bubble_color');
+    register_setting('nlcb_settings', 'nlcb_appearance_user_bubble_color');
 });
 
 // Add settings page
@@ -68,6 +74,29 @@ function nlcb_settings_page() {
                 <tr>
                     <th><label for="nlcb_vector_endpoint">Vector Search Endpoint (e.g., Qdrant URL)</label></th>
                     <td><input type="text" name="nlcb_vector_endpoint" value="<?php echo esc_attr(get_option('nlcb_vector_endpoint')); ?>" class="regular-text code" placeholder="https://your-instance.cloud.qdrant.io" /></td>
+                </tr>
+            </table>
+            <h2>Appearance</h2>
+            <table class="form-table">
+                <tr>
+                    <th><label for="nlcb_appearance_title">Chatbot Title</label></th>
+                    <td><input type="text" name="nlcb_appearance_title" value="<?php echo esc_attr(get_option('nlcb_appearance_title', 'AI Chatbot')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th><label for="nlcb_appearance_bubble_icon">Bubble Icon (emoji or SVG)</label></th>
+                    <td><input type="text" name="nlcb_appearance_bubble_icon" value="<?php echo esc_attr(get_option('nlcb_appearance_bubble_icon', '✨')); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th><label for="nlcb_appearance_titlebar_color">Title Bar Color</label></th>
+                    <td><input type="color" name="nlcb_appearance_titlebar_color" value="<?php echo esc_attr(get_option('nlcb_appearance_titlebar_color', '#0073aa')); ?>" /></td>
+                </tr>
+                <tr>
+                    <th><label for="nlcb_appearance_bot_bubble_color">Bot Bubble Color</label></th>
+                    <td><input type="color" name="nlcb_appearance_bot_bubble_color" value="<?php echo esc_attr(get_option('nlcb_appearance_bot_bubble_color', '#e3f1fa')); ?>" /></td>
+                </tr>
+                <tr>
+                    <th><label for="nlcb_appearance_user_bubble_color">User Bubble Color</label></th>
+                    <td><input type="color" name="nlcb_appearance_user_bubble_color" value="<?php echo esc_attr(get_option('nlcb_appearance_user_bubble_color', '#d1e7dd')); ?>" /></td>
                 </tr>
             </table>
             <?php submit_button('Save Settings'); ?>
@@ -230,6 +259,13 @@ add_action('wp_enqueue_scripts', function() {
     wp_localize_script('nlcb-chatbot-app', 'nlcbChatbot', [
         'restUrl' => esc_url_raw(rest_url('nlcb/v1/')),
         'nonce' => wp_create_nonce('wp_rest'),
+        'appearance' => [
+            'title' => get_option('nlcb_appearance_title', 'AI Chatbot'),
+            'bubble_icon' => get_option('nlcb_appearance_bubble_icon', '✨'),
+            'titlebar_color' => get_option('nlcb_appearance_titlebar_color', '#0073aa'),
+            'bot_bubble_color' => get_option('nlcb_appearance_bot_bubble_color', '#e3f1fa'),
+            'user_bubble_color' => get_option('nlcb_appearance_user_bubble_color', '#d1e7dd'),
+        ]
     ]);
 });
 

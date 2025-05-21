@@ -17,6 +17,14 @@ createApp({
         const faqs = ref([]); // Keep fetching FAQs in case we need them later, but don't display
         const messagesContainer = ref(null); // Ref for the messages div
 
+        // Appearance settings (reactive)
+        const appearance = Vue.reactive(nlcbChatbot.appearance || {});
+        const title = Vue.computed(() => appearance.title || 'AI Chatbot');
+        const bubbleIcon = Vue.computed(() => appearance.bubble_icon || '✨');
+        const titlebarColor = Vue.computed(() => appearance.titlebar_color || '#0073aa');
+        const botBubbleColor = Vue.computed(() => appearance.bot_bubble_color || '#e3f1fa');
+        const userBubbleColor = Vue.computed(() => appearance.user_bubble_color || '#d1e7dd');
+
         // Fetch FAQs on mount
         fetch(nlcbChatbot.restUrl + 'faqs')
             .then(r => r.json())
@@ -64,23 +72,26 @@ createApp({
             });
         });
 
-        return { open, userInput, messages, loading, faqs, sendMessage, messagesContainer };
+        return { open, userInput, messages, loading, faqs, sendMessage, messagesContainer, title, bubbleIcon, titlebarColor, botBubbleColor, userBubbleColor };
     },
     template: `
     <div class="nlcb-chatbot-portal-root">
         <button v-if="!open" @click="open = true" class="nlcb-chat-bubble">
-            ✨
+            <span v-html="bubbleIcon"></span>
         </button>
         <div v-if="open" class="nlcb-chat-window">
-            <div class="nlcb-chat-header">
-                <span>AI Chatbot</span>
+            <div class="nlcb-chat-header" :style="{ background: titlebarColor, color: '#fff' }">
+                <span>{{ title }}</span>
                 <button @click="open = false">×</button>
             </div>
             <div class="nlcb-chat-messages" ref="messagesContainer">
-                <div v-for="(msg, i) in messages" :key="i" :class="msg.role === 'bot' ? 'nlcb-msg-bot' : 'nlcb-msg-user'">
+                <div v-for="(msg, i) in messages" :key="i"
+                    :class="msg.role === 'bot' ? 'nlcb-msg-bot' : 'nlcb-msg-user'"
+                    :style="msg.role === 'bot' ? { background: botBubbleColor } : { background: userBubbleColor }"
+                >
                     {{ msg.text }}
                 </div>
-                <div v-if="loading" class="nlcb-msg-bot nlcb-typing-indicator">
+                <div v-if="loading" class="nlcb-msg-bot nlcb-typing-indicator" :style="{ background: botBubbleColor }">
                     <span class="nlcb-typing-dot"></span>
                     <span class="nlcb-typing-dot"></span>
                     <span class="nlcb-typing-dot"></span>
@@ -92,5 +103,5 @@ createApp({
             </form>
         </div>
     </div>
-    `
+    `,
 }).mount('#nlcb-chatbot-portal-root'); 
