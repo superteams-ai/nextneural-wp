@@ -1,9 +1,9 @@
 <?php
 /*
-Plugin Name: NL Chatbot
+Plugin Name: Natural Language AI Chatbot (NL-Chatbot)
 Description: Adds a floating AI-powered help chatbot to your site. Uses OpenAI and vector search over FAQs.
-Version: 0.1.0
-Author: Your Name
+Version: 1.0.0
+Author: Superteams.ai
 */
 
 defined('ABSPATH') or die('No script kiddies please!');
@@ -59,59 +59,101 @@ add_action('admin_enqueue_scripts', function($hook_suffix) {
 function nlcb_settings_page() {
     ?>
     <div class="wrap">
-        <h1>NL Chatbot Settings</h1>
+        <h1>NL-Chatbot (Natural Language AI Support Chatbot)</h1>
+        <p style="max-width:800px;font-size:1.05em;line-height:1.6;margin-bottom:22px;">
+            NL-Chatbot (Natural Language AI Chatbot) is a plugin that uses LLMs and Vector Search to enable natural language support chatbot on your Wordpress website. Currently the plugin supports OpenAI's LLM models, and Qdrant to power the Vector Search. Support for 100+ LLMs and a wide range of Vector Search technologies is coming soon. Developed by <a href="https://superteams.ai" target="_blank">Superteams.ai</a>.
+        </p>
         <form method="post" action="options.php">
             <?php
             settings_fields('nlcb_settings');
             do_settings_sections('nlcb_settings');
             ?>
-            <table class="form-table">
-                <tr>
-                    <th><label for="nlcb_openai_api_key">OpenAI API Key</label></th>
-                    <td><input type="text" name="nlcb_openai_api_key" value="<?php echo esc_attr(get_option('nlcb_openai_api_key')); ?>" class="regular-text code" /></td>
-                </tr>
-                <tr>
-                    <th><label for="nlcb_vector_api_key">Vector Search API Key (e.g., Qdrant)</label></th>
-                    <td><input type="text" name="nlcb_vector_api_key" value="<?php echo esc_attr(get_option('nlcb_vector_api_key')); ?>" class="regular-text code" /></td>
-                </tr>
-                <tr>
-                    <th><label for="nlcb_vector_endpoint">Vector Search Endpoint (e.g., Qdrant URL)</label></th>
-                    <td><input type="text" name="nlcb_vector_endpoint" value="<?php echo esc_attr(get_option('nlcb_vector_endpoint')); ?>" class="regular-text code" placeholder="https://your-instance.cloud.qdrant.io" /></td>
-                </tr>
-            </table>
-            <h2>Appearance</h2>
-            <table class="form-table">
-                <tr>
-                    <th><label for="nlcb_appearance_chatbot_name">Chatbot Name</label></th>
-                    <td><input type="text" name="nlcb_appearance_chatbot_name" value="<?php echo esc_attr(get_option('nlcb_appearance_chatbot_name', 'Alexa')); ?>" class="regular-text" placeholder="e.g. Alexa, Siri, etc." /></td>
-                </tr>
-                <tr>
-                    <th><label for="nlcb_appearance_company_name">Company Name</label></th>
-                    <td><input type="text" name="nlcb_appearance_company_name" value="<?php echo esc_attr(get_option('nlcb_appearance_company_name', 'Your Company')); ?>" class="regular-text" placeholder="e.g. Acme Corp" /></td>
-                </tr>
-                <tr>
-                    <th><label for="nlcb_appearance_title">Chatbot Title</label></th>
-                    <td><input type="text" name="nlcb_appearance_title" value="<?php echo esc_attr(get_option('nlcb_appearance_title', 'AI Chatbot')); ?>" class="regular-text" /></td>
-                </tr>
-                <tr>
-                    <th><label for="nlcb_appearance_bubble_icon">Bubble Icon (emoji or SVG)</label></th>
-                    <td><input type="text" name="nlcb_appearance_bubble_icon" value="<?php echo esc_attr(get_option('nlcb_appearance_bubble_icon', '✨')); ?>" class="regular-text" /></td>
-                </tr>
-                <tr>
-                    <th><label for="nlcb_appearance_titlebar_color">Title Bar Color</label></th>
-                    <td><input type="color" name="nlcb_appearance_titlebar_color" value="<?php echo esc_attr(get_option('nlcb_appearance_titlebar_color', '#0073aa')); ?>" /></td>
-                </tr>
-                <tr>
-                    <th><label for="nlcb_appearance_bot_bubble_color">Bot Bubble Color</label></th>
-                    <td><input type="color" name="nlcb_appearance_bot_bubble_color" value="<?php echo esc_attr(get_option('nlcb_appearance_bot_bubble_color', '#e3f1fa')); ?>" /></td>
-                </tr>
-                <tr>
-                    <th><label for="nlcb_appearance_user_bubble_color">User Bubble Color</label></th>
-                    <td><input type="color" name="nlcb_appearance_user_bubble_color" value="<?php echo esc_attr(get_option('nlcb_appearance_user_bubble_color', '#d1e7dd')); ?>" /></td>
-                </tr>
-            </table>
+            <fieldset style="border:1px solid #ccd0d4; border-radius:6px; padding:18px 20px 10px 20px; margin-bottom:24px; background:#f9f9f9; max-width:700px;">
+                <legend style="font-weight:bold; padding:0 8px;">OpenAI & Qdrant Settings</legend>
+                <p style="color:#555; font-size:13px; margin-bottom:16px;">Configure your API keys and endpoints for OpenAI (for LLM) and Qdrant (for vector search). Required for the chatbot to function.</p>
+                <table class="form-table">
+                    <tr>
+                        <th><label for="nlcb_openai_api_key">OpenAI API Key</label></th>
+                        <td>
+                            <input type="text" name="nlcb_openai_api_key" value="<?php echo esc_attr(get_option('nlcb_openai_api_key')); ?>" class="regular-text code" />
+                            <br><small><a href="https://platform.openai.com/api-keys" target="_blank">Get your API key from OpenAI</a></small>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="nlcb_vector_api_key">Qdrant API Key</label></th>
+                        <td>
+                            <input type="text" name="nlcb_vector_api_key" value="<?php echo esc_attr(get_option('nlcb_vector_api_key')); ?>" class="regular-text code" />
+                            <br><small><a href="https://cloud.qdrant.io/signup" target="_blank">Get your Qdrant API key</a></small>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="nlcb_vector_endpoint">Qdrant Cloud Endpoint</label></th>
+                        <td>
+                            <input type="text" name="nlcb_vector_endpoint" value="<?php echo esc_attr(get_option('nlcb_vector_endpoint')); ?>" class="regular-text code" placeholder="https://your-instance.cloud.qdrant.io" />
+                            <br><small><a href="https://cloud.qdrant.io/signup" target="_blank">Get your Qdrant Cloud endpoint</a></small>
+                        </td>
+                    </tr>
+                </table>
+            </fieldset>
+
+            <fieldset style="border:1px solid #ccd0d4; border-radius:6px; padding:18px 20px 10px 20px; margin-bottom:24px; background:#f9f9f9; max-width:700px;">
+                <legend style="font-weight:bold; padding:0 8px;">Appearance</legend>
+                <p style="margin:0 0 10px 2px;color:#555;max-width:700px;font-size:13px;">
+                    Customize the look, branding, and personality of your chatbot. These settings control the chatbot’s name, company, title, icon, and colors as seen by your site visitors.
+                </p>
+                <table class="form-table">
+                    <tr>
+                        <th><label for="nlcb_appearance_chatbot_name">Chatbot Name</label></th>
+                        <td><input type="text" name="nlcb_appearance_chatbot_name" value="<?php echo esc_attr(get_option('nlcb_appearance_chatbot_name', 'Alexa')); ?>" class="regular-text" placeholder="e.g. Alexa, Siri, etc." /></td>
+                    </tr>
+                    <tr>
+                        <th><label for="nlcb_appearance_company_name">Company Name</label></th>
+                        <td><input type="text" name="nlcb_appearance_company_name" value="<?php echo esc_attr(get_option('nlcb_appearance_company_name', 'Your Company')); ?>" class="regular-text" placeholder="e.g. Acme Corp" /></td>
+                    </tr>
+                    <tr>
+                        <th><label for="nlcb_appearance_title">Chatbot Title</label></th>
+                        <td><input type="text" name="nlcb_appearance_title" value="<?php echo esc_attr(get_option('nlcb_appearance_title', 'AI Chatbot')); ?>" class="regular-text" /></td>
+                    </tr>
+                    <tr>
+                        <th><label for="nlcb_appearance_bubble_icon">Bubble Icon (emoji or SVG)</label></th>
+                        <td><input type="text" name="nlcb_appearance_bubble_icon" value="<?php echo esc_attr(get_option('nlcb_appearance_bubble_icon', '✨')); ?>" class="regular-text" /></td>
+                    </tr>
+                    <tr>
+                        <th><label for="nlcb_appearance_titlebar_color">Title Bar Color</label></th>
+                        <td><input type="color" name="nlcb_appearance_titlebar_color" value="<?php echo esc_attr(get_option('nlcb_appearance_titlebar_color', '#0073aa')); ?>" /></td>
+                    </tr>
+                    <tr>
+                        <th><label for="nlcb_appearance_bot_bubble_color">Bot Bubble Color</label></th>
+                        <td><input type="color" name="nlcb_appearance_bot_bubble_color" value="<?php echo esc_attr(get_option('nlcb_appearance_bot_bubble_color', '#e3f1fa')); ?>" /></td>
+                    </tr>
+                    <tr>
+                        <th><label for="nlcb_appearance_user_bubble_color">User Bubble Color</label></th>
+                        <td><input type="color" name="nlcb_appearance_user_bubble_color" value="<?php echo esc_attr(get_option('nlcb_appearance_user_bubble_color', '#d1e7dd')); ?>" /></td>
+                    </tr>
+                </table>
+            </fieldset>
             <?php submit_button('Save Settings'); ?>
         </form>
+        <script>
+        function nlcbReindexFaqs() {
+            var btn = document.getElementById('nlcb-reindex-faqs');
+            var status = document.getElementById('nlcb-reindex-status');
+            btn.disabled = true;
+            status.textContent = '⏳ Reindexing...';
+            jQuery.post(ajaxurl, {
+                action: 'nlcb_reindex_faqs',
+                _ajax_nonce: nlcbAdmin._ajax_nonce
+            }, function(resp) {
+                btn.disabled = false;
+                if (resp.success) {
+                    status.textContent = '✅ ' + (resp.data || 'Reindex complete!');
+                } else {
+                    status.textContent = '❌ ' + (resp.data || 'Reindex failed.');
+                }
+            });
+        }
+        </script>
+
         <hr />
         <h2>Manage FAQs</h2>
         <p><a href="<?php echo admin_url('edit.php?post_type=nlcb_faq'); ?>" class="button">View/Edit FAQs</a></p>
