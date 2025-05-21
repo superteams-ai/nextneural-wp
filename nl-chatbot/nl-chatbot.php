@@ -34,6 +34,9 @@ add_action('admin_init', function() {
     register_setting('nlcb_settings', 'nlcb_appearance_titlebar_color');
     register_setting('nlcb_settings', 'nlcb_appearance_bot_bubble_color');
     register_setting('nlcb_settings', 'nlcb_appearance_user_bubble_color');
+    // New: Chatbot name and company name
+    register_setting('nlcb_settings', 'nlcb_appearance_chatbot_name');
+    register_setting('nlcb_settings', 'nlcb_appearance_company_name');
 });
 
 // Add settings page
@@ -78,6 +81,14 @@ function nlcb_settings_page() {
             </table>
             <h2>Appearance</h2>
             <table class="form-table">
+                <tr>
+                    <th><label for="nlcb_appearance_chatbot_name">Chatbot Name</label></th>
+                    <td><input type="text" name="nlcb_appearance_chatbot_name" value="<?php echo esc_attr(get_option('nlcb_appearance_chatbot_name', 'Alexa')); ?>" class="regular-text" placeholder="e.g. Alexa, Siri, etc." /></td>
+                </tr>
+                <tr>
+                    <th><label for="nlcb_appearance_company_name">Company Name</label></th>
+                    <td><input type="text" name="nlcb_appearance_company_name" value="<?php echo esc_attr(get_option('nlcb_appearance_company_name', 'Your Company')); ?>" class="regular-text" placeholder="e.g. Acme Corp" /></td>
+                </tr>
                 <tr>
                     <th><label for="nlcb_appearance_title">Chatbot Title</label></th>
                     <td><input type="text" name="nlcb_appearance_title" value="<?php echo esc_attr(get_option('nlcb_appearance_title', 'AI Chatbot')); ?>" class="regular-text" /></td>
@@ -265,6 +276,8 @@ add_action('wp_enqueue_scripts', function() {
             'titlebar_color' => get_option('nlcb_appearance_titlebar_color', '#0073aa'),
             'bot_bubble_color' => get_option('nlcb_appearance_bot_bubble_color', '#e3f1fa'),
             'user_bubble_color' => get_option('nlcb_appearance_user_bubble_color', '#d1e7dd'),
+            'chatbot_name' => get_option('nlcb_appearance_chatbot_name', 'Alexa'),
+            'company_name' => get_option('nlcb_appearance_company_name', 'Your Company'),
         ]
     ]);
 });
@@ -363,9 +376,32 @@ add_action('rest_api_init', function() {
                     $faq_context .= "FAQ #" . ($i+1) . ":\nQ: " . wp_strip_all_tags($hit['payload']['question']) . "\nA: " . wp_strip_all_tags($hit['payload']['answer']) . "\n\n";
                 }
             }
-            $system_prompt = "You are a helpful support assistant. Use the following FAQs to answer the user's question as helpfully as possible. If the answer is not in the FAQs, then respond to the user saying
-            that you do not have answer to the question, and that the user should get in touch with the support team.";
-            $user_prompt = "FAQs:\n" . $faq_context . "\nUser Question: " . $question;
+            $system_prompt = "You are a helpful support assistant. Use the following FAQs to answer the user's question as helpfully as possible. If the answer is not in the FAQs, and related to the company, then respond to the user saying
+            that you do not have answer to the question, and that the user should get in touch through the contact or connect with the support team. If the question is not related to the company, then respond to the user saying that you can only answer questions related to the company. When you respond to the user, refer to the company as 'we' and the user as 'you'. Keep the responses concise. End the respond with a leading question based on the conversation history.";
+            // Prepare messages array for OpenAI
+            $messages = [
+                ['role' => 'system', 'content' => $system_prompt]
+            ];
+            // Add conversation history if provided
+            $history = $params['history'] ?? [];
+            if (is_array($history)) {
+                foreach ($history as $msg) {
+                    if (!empty($msg['role']) && !empty($msg['content'])) {
+                        // Only allow 'user' or 'assistant' roles
+                        if ($msg['role'] === 'user' || $msg['role'] === 'assistant') {
+                            $messages[] = [
+                                'role' => $msg['role'],
+                                'content' => $msg['content']
+                            ];
+                        }
+                    }
+                }
+            }
+            // Add the latest user prompt (with FAQ context)
+            $messages[] = [
+                'role' => 'user',
+                'content' => "FAQs:\n" . $faq_context . "\nUser Question: " . $question
+            ];
             // Call OpenAI Chat Completion
             $chat_response = wp_remote_post('https://api.openai.com/v1/chat/completions', [
                 'headers' => [
@@ -374,10 +410,7 @@ add_action('rest_api_init', function() {
                 ],
                 'body' => json_encode([
                     'model' => 'gpt-4o-mini',
-                    'messages' => [
-                        ['role' => 'system', 'content' => $system_prompt],
-                        ['role' => 'user', 'content' => $user_prompt]
-                    ],
+                    'messages' => $messages,
                     'max_tokens' => 512,
                     'temperature' => 0.3
                 ]),

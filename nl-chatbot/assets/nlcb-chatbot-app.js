@@ -8,17 +8,17 @@ document.body.appendChild(chatbotRoot);
 
 createApp({
     setup() {
+        // Appearance settings (reactive)
+        const appearance = Vue.reactive(nlcbChatbot.appearance || {});
+
         const open = ref(false);
         const userInput = ref('');
         const messages = ref([
-            { role: 'bot', text: 'Hi! How can I help you today?' }
+            { role: 'bot', text: `Hello, I am ${appearance.chatbot_name || 'Alexa'}, your helpful assistant. I can answer questions about ${appearance.company_name || 'Your Company'}. What can I help you with?` }
         ]);
         const loading = ref(false);
         const faqs = ref([]); // Keep fetching FAQs in case we need them later, but don't display
         const messagesContainer = ref(null); // Ref for the messages div
-
-        // Appearance settings (reactive)
-        const appearance = Vue.reactive(nlcbChatbot.appearance || {});
         const title = Vue.computed(() => appearance.title || 'AI Chatbot');
         const bubbleIcon = Vue.computed(() => appearance.bubble_icon || '✨');
         const titlebarColor = Vue.computed(() => appearance.titlebar_color || '#0073aa');
@@ -36,13 +36,18 @@ createApp({
             messages.value.push({ role: 'user', text: question });
             userInput.value = '';
             loading.value = true;
+            // Prepare conversation history for backend (exclude loading indicators)
+            const history = messages.value
+                .filter(msg => msg.role === 'user' || msg.role === 'bot')
+                .map(msg => ({ role: msg.role === 'user' ? 'user' : 'assistant', content: msg.text }))
+                .slice(-6); // Last 3 user+bot turns
             fetch(nlcbChatbot.restUrl + 'chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-WP-Nonce': nlcbChatbot.nonce
                 },
-                body: JSON.stringify({ question })
+                body: JSON.stringify({ question, history })
             })
             .then(r => r.json())
             .then(data => {
@@ -76,7 +81,7 @@ createApp({
     },
     template: `
     <div class="nlcb-chatbot-portal-root">
-        <button v-if="!open" @click="open = true" class="nlcb-chat-bubble">
+        <button v-if="!open" @click="open = true" class="nlcb-chat-bubble" :style="{ background: titlebarColor, color: '#fff' }">
             <span v-html="bubbleIcon"></span>
         </button>
         <div v-if="open" class="nlcb-chat-window">
