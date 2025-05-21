@@ -3,7 +3,7 @@ Contributors: Superteams.ai
 Tags: chatbot, openai, faq, ai, support, vector search
 Requires at least: 5.6
 Tested up to: 6.5
-Stable tag: 0.1.0
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -39,9 +39,6 @@ Go to "Chatbot FAQs" in the admin menu. Add or edit FAQs like regular posts.
 API keys are stored as WordPress options and never exposed to users.
 
 == Changelog ==
-= 0.1.0 =
+= 1.0.0 =
 * Initial release: OpenAI-powered chatbot with vector FAQ search and full appearance settings.
 
-== Upgrade Notice ==
-= 0.1.0 =
-First public release. Please review your API keys and appearance settings after upgrade.

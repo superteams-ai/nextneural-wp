@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: Natural Language Search (AI)
+Plugin Name: Natural Language AI Search (NL-Search)
 Description: Replaces WP search with natural language search. Uses vector search and OpenAI. 
 Version: 1.0.0
 Author: Superteams.ai
@@ -273,7 +273,7 @@ function nl_search_settings_page() {
         }
     </style>
     <div class="wrap">
-        <h1>🔍 Natural Language Search – Settings</h1>
+        <h1>🔍 Natural Language AI Search (NL-Search)</h1>
         <div style="max-width: 700px; margin-bottom: 32px; margin-top: 8px; font-size: 15px; color: #333; line-height: 1.6;">
             NL-Search (Natural Language Search) is a plugin that uses LLMs and Vector Search to enable natural language search on your Wordpress website. Currently the plugin supports OpenAI's LLM models, and Qdrant to power the Vector Search. Support for 100+ LLMs and a wide range of Vector Search technologies is coming soon. Developed by <a href="https://www.superteams.ai">Superteams.ai</a>.
         </div>
@@ -297,8 +297,8 @@ function nl_search_settings_page() {
                                     <td>
                                         <input type="text" id="nl_search_openai_api_key" name="nl_search_openai_api_key"
                                                value="<?php echo esc_attr(get_option('nl_search_openai_api_key')); ?>"
-                                               class="regular-text code" style="width: 100%;" />
-                                        <p class="description">Get from <a href=\"https://platform.openai.com/account/api-keys\" target=\"_blank\">OpenAI dashboard</a>.</p>
+                                               class="regular-text code" style="width: 350px;" />
+                                        <br><small><a href="https://platform.openai.com/api-keys" target="_blank">Get your API key from OpenAI</a></small>
                                     </td>
                                 </tr>
                                 <tr>
@@ -320,7 +320,8 @@ function nl_search_settings_page() {
                                     <td>
                                         <input type="text" id="nl_search_qdrant_api_key" name="nl_search_qdrant_api_key"
                                                value="<?php echo esc_attr(get_option('nl_search_qdrant_api_key')); ?>"
-                                               class="regular-text code" style="width: 100%;" />
+                                               class="regular-text code" style="width: 350px;" />
+                                        <br><small><a href="https://cloud.qdrant.io/signup" target="_blank">Get your Qdrant API key</a></small>
                                         <p class="description">Leave blank if your Qdrant instance allows public access.</p>
                                     </td>
                                 </tr>
@@ -329,8 +330,9 @@ function nl_search_settings_page() {
                                     <td>
                                         <input type="text" id="nl_search_qdrant_url" name="nl_search_qdrant_url"
                                                value="<?php echo esc_attr(get_option('nl_search_qdrant_url')); ?>"
-                                               class="regular-text code" style="width: 100%;"
+                                               class="regular-text code" style="width: 350px;"
                                                placeholder="https://your-instance.cloud.qdrant.io" />
+                                        <br><small><a href="https://cloud.qdrant.io/signup" target="_blank">Get your Qdrant Cloud endpoint</a></small>
                                         <p class="description">No trailing slash.</p>
                                     </td>
                                 </tr>
